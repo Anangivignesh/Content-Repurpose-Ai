@@ -13,7 +13,6 @@
   <img src="https://img.shields.io/badge/Status-MVP-success?style=for-the-badge" />
   <br/>
   <img src="https://img.shields.io/badge/Platform-Web-lightgrey?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Made_with-Love-red?style=for-the-badge" />
 </p>
 
 ---
@@ -244,5 +243,4 @@ git push origin feature/AmazingFeature
 **Acknowledgements:**
 - [FastAPI](https://fastapi.tiangolo.com/) for the incredibly fast backend framework.
 - [OpenRouter](https://openrouter.ai/) for accessible and unified LLM endpoints.
-- [Meta Llama 3](https://ai.meta.com/llama/) for powering the intelligence behind the repurposing.
 - [Shields.io](https://shields.io) for the awesome README badges.
