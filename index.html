@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Repurpose AI</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh;padding:32px 16px}
+.wrap{max-width:780px;margin:0 auto}
+h1{font-size:24px;font-weight:700;color:#f1f5f9;margin-bottom:4px}
+h1 span{color:#6366f1}
+.sub{font-size:13px;color:#64748b;margin-bottom:28px}
+.card{background:#1a1f2e;border:1px solid #1e2535;border-radius:12px;padding:20px 24px;margin-bottom:16px}
+label{font-size:11px;font-weight:700;letter-spacing:.08em;color:#64748b;text-transform:uppercase;display:block;margin-bottom:8px}
+textarea{width:100%;padding:12px 14px;background:#0f1117;border:1px solid #2d3748;border-radius:8px;color:#e2e8f0;font-size:14px;line-height:1.6;resize:vertical;min-height:160px;outline:none;font-family:inherit}
+textarea:focus{border-color:#6366f1}
+.format-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.fmt-btn{padding:6px 14px;border-radius:20px;border:1px solid #2d3748;background:#0f1117;color:#94a3b8;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;user-select:none}
+.fmt-btn.active{background:#6366f110;border-color:#6366f1;color:#818cf8}
+.btn{padding:11px 24px;border-radius:8px;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.btn-primary{background:#6366f1;color:#fff;width:100%}
+.btn-primary:hover{opacity:.85}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.word-count{font-size:11px;color:#475569;text-align:right;margin-top:4px}
+.outputs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+@media(max-width:600px){.outputs{grid-template-columns:1fr}}
+.out-card{background:#1a1f2e;border:1px solid #1e2535;border-radius:10px;padding:16px;display:none}
+.out-card.visible{display:block}
+.out-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.out-title{font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em}
+.copy-btn{font-size:11px;font-weight:600;padding:3px 10px;border-radius:5px;border:1px solid #2d3748;background:#0f1117;color:#64748b;cursor:pointer;transition:all .15s}
+.copy-btn:hover{border-color:#6366f1;color:#818cf8}
+.copy-btn.copied{border-color:#10b981;color:#10b981}
+.out-body{font-size:13px;color:#cbd5e1;line-height:1.7;white-space:pre-wrap;max-height:280px;overflow-y:auto}
+.out-body.loading{color:#475569;font-style:italic}
+.out-body.error{color:#f87171}
+.meta-bar{font-size:11px;color:#475569;margin-top:10px;text-align:center;display:none}
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid #334155;border-top-color:#6366f1;border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;vertical-align:-1px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.status-row{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;font-size:13px;color:#64748b;display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>✦ Repurpose <span>AI</span></h1>
+  <p class="sub">Paste any content — get 5 platform-ready formats in seconds</p>
+
+  <div class="card">
+    <label>Your Content</label>
+    <textarea id="content" placeholder="Paste your blog post, article, transcript, or any long-form text here..." oninput="updateCount()"></textarea>
+    <div class="word-count" id="wordCount">0 words</div>
+  </div>
+
+  <div class="card">
+    <label>Output Formats</label>
+    <div class="format-row" id="formatRow">
+      <div class="fmt-btn active" data-fmt="twitter" onclick="toggleFmt(this)">🐦 Twitter Thread</div>
+      <div class="fmt-btn active" data-fmt="linkedin" onclick="toggleFmt(this)">💼 LinkedIn Post</div>
+      <div class="fmt-btn active" data-fmt="email" onclick="toggleFmt(this)">📧 Email Newsletter</div>
+      <div class="fmt-btn active" data-fmt="tldr" onclick="toggleFmt(this)">⚡ Summary(TL;DR)</div>
+      <div class="fmt-btn active" data-fmt="hooks" onclick="toggleFmt(this)">🎣 Headline Hooks</div>
+    </div>
+    <button class="btn btn-primary" id="goBtn" onclick="repurpose()">✨ Repurpose Content</button>
+  </div>
+
+  <div class="status-row" id="statusRow">
+    <span class="spinner"></span>
+    <span id="statusText">Generating all formats simultaneously...</span>
+  </div>
+
+  <div class="outputs" id="outputs">
+    <div class="out-card" id="card-twitter">
+      <div class="out-header"><span class="out-title">🐦 Twitter Thread</span><button class="copy-btn" onclick="copy('twitter',this)">Copy</button></div>
+      <div class="out-body" id="body-twitter"></div>
+    </div>
+    <div class="out-card" id="card-linkedin">
+      <div class="out-header"><span class="out-title">💼 LinkedIn Post</span><button class="copy-btn" onclick="copy('linkedin',this)">Copy</button></div>
+      <div class="out-body" id="body-linkedin"></div>
+    </div>
+    <div class="out-card" id="card-email">
+      <div class="out-header"><span class="out-title">📧 Email Newsletter</span><button class="copy-btn" onclick="copy('email',this)">Copy</button></div>
+      <div class="out-body" id="body-email"></div>
+    </div>
+    <div class="out-card" id="card-tldr">
+      <div class="out-header"><span class="out-title">⚡ Summary(TL;DR)</span><button class="copy-btn" onclick="copy('tldr',this)">Copy</button></div>
+      <div class="out-body" id="body-tldr"></div>
+    </div>
+    <div class="out-card" id="card-hooks">
+      <div class="out-header"><span class="out-title">🎣 Headline Hooks</span><button class="copy-btn" onclick="copy('hooks',this)">Copy</button></div>
+      <div class="out-body" id="body-hooks"></div>
+    </div>
+  </div>
+
+  <div class="meta-bar" id="metaBar"></div>
+</div>
+
+<script>
+const LABELS = {
+  twitter:'🐦 Twitter Thread',
+  linkedin:'💼 LinkedIn Post',
+  email:'📧 Email Newsletter',
+  tldr:'⚡ Summary(TL;DR)',
+  hooks:'🎣 Headline Hooks'
+};
+
+function updateCount(){
+  const text = document.getElementById('content').value.trim();
+  const words = text ? text.split(/\s+/).length : 0;
+  document.getElementById('wordCount').textContent = words + ' words';
+}
+
+function toggleFmt(el){
+  el.classList.toggle('active');
+}
+
+function getSelectedFormats(){
+  return [...document.querySelectorAll('.fmt-btn.active')].map(el => el.dataset.fmt);
+}
+
+function copy(fmt, btn){
+  const body = document.getElementById('body-' + fmt);
+  if(!body || !body.textContent) return;
+  navigator.clipboard.writeText(body.textContent);
+  btn.textContent = '✅ Copied!';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+}
+
+async function repurpose(){
+  const content = document.getElementById('content').value.trim();
+  if(!content){ alert('Paste some content first.'); return; }
+  if(content.split(/\s+/).length < 10){ alert('Content is too short — paste at least a paragraph.'); return; }
+
+  const formats = getSelectedFormats();
+  if(!formats.length){ alert('Select at least one output format.'); return; }
+
+  const btn = document.getElementById('goBtn');
+  btn.disabled = true;
+
+  // Show loading state for all selected cards
+  formats.forEach(fmt => {
+    const card = document.getElementById('card-' + fmt);
+    const body = document.getElementById('body-' + fmt);
+    card.classList.add('visible');
+    body.className = 'out-body loading';
+    body.textContent = 'Generating...';
+  });
+
+  // Hide unselected cards
+  ['twitter','linkedin','email','tldr','hooks'].forEach(fmt => {
+    if(!formats.includes(fmt)){
+      document.getElementById('card-' + fmt).classList.remove('visible');
+    }
+  });
+
+  document.getElementById('statusRow').style.display = 'flex';
+  document.getElementById('metaBar').style.display = 'none';
+
+  try {
+    const res = await fetch('/repurpose', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ content, formats })
+    });
+    const data = await res.json();
+
+    if(data.error){
+      formats.forEach(fmt => {
+        const body = document.getElementById('body-' + fmt);
+        body.className = 'out-body error';
+        body.textContent = data.error;
+      });
+    } else {
+      Object.entries(data.outputs).forEach(([fmt, val]) => {
+        const body = document.getElementById('body-' + fmt);
+        if(val.error){
+          body.className = 'out-body error';
+          body.textContent = 'Error: ' + val.error;
+        } else {
+          body.className = 'out-body';
+          body.textContent = val.result;
+        }
+      });
+      if(data.meta){
+        const mb = document.getElementById('metaBar');
+        mb.textContent = `${data.meta.formats_requested} formats generated · ${data.meta.word_count} words processed · ${data.meta.model}`;
+        mb.style.display = 'block';
+      }
+    }
+  } catch(e) {
+    formats.forEach(fmt => {
+      const body = document.getElementById('body-' + fmt);
+      body.className = 'out-body error';
+      body.textContent = 'Could not reach backend. Is the server running on port 8000?';
+    });
+  }
+
+  document.getElementById('statusRow').style.display = 'none';
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
